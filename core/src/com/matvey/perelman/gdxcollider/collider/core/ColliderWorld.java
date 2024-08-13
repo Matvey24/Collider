@@ -18,17 +18,18 @@ public class ColliderWorld<T extends Dynamic<T>> {
     public void addObject(T dim){
         dim.col_task = scheduler.createTask();
         dim.col_task.set(time -> collide(dim, time));
+        dim.chunk.objects.add(dim);
         notifyObjectAdded(dim);
         objects.add(dim);
     }
-    public void removeObject(T dim){
-        dim.chunk.objects.remove(dim);
-        objects.remove(dim);
-        if(dim.col_with != null && dim.col_with.col_with != null)
-            notifyObjectAdded(dim.col_with);
-        dim.col_with = null;
-        dim.col_task.cancel();
-        dim.col_task = null;
+    public void removeAll(){
+        for(T dim: objects){
+            dim.chunk.objects.remove(dim);
+            dim.col_task.cancel();
+            dim.col_task = null;
+            dim.col_with = null;
+        }
+        objects.clear();
     }
 
     public void notifyObjectAdded(T d){//changed velocity, position or size
@@ -70,9 +71,9 @@ public class ColliderWorld<T extends Dynamic<T>> {
     public void collide(T a, double time){
         T b = a.col_with;
         a.col_task = a.col_task.copy();
-        if(time >= 0.6234){
+//        if(time >= 0.6234){
 //            System.out.println("Hello world");
-        }
+//        }
         if(b.col_with == null){ //static object or trigger
             collider.collide_static(a, b, time);
             a.chunk.objects.remove(a);

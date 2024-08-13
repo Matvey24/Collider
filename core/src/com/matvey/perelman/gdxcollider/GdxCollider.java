@@ -50,6 +50,7 @@ public class GdxCollider extends ApplicationAdapter {
 //		}
 		roll = 0.001f;
 		cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		cam.position.set(1920 / 2f, 1080 / 2f, 0);
 		float target_time = 0f;
 		do{
 			update((float)(0.016));
@@ -82,6 +83,9 @@ public class GdxCollider extends ApplicationAdapter {
 						break;
 					case Input.Keys.SPACE:
 						paused = !paused;
+						break;
+					case Input.Keys.R:
+						creator.reversePlayback();
 						break;
 					case Input.Keys.F11:
 						if(Gdx.graphics.isFullscreen()){
@@ -197,10 +201,10 @@ public class GdxCollider extends ApplicationAdapter {
 			world_batch.end();
 			ui_batch.begin();
 			font.draw(ui_batch, "avg: " + updates.avg + ", sum: " + updates.full_sum, 0, Gdx.graphics.getHeight());
-			font.draw(ui_batch, String.valueOf(speed * 1000), 0, Gdx.graphics.getHeight() - 20);
-			font.draw(ui_batch, String.valueOf(creator.world.time), 0, Gdx.graphics.getHeight() - 40);
+			font.draw(ui_batch, "speed: " + speed * 1000, 0, Gdx.graphics.getHeight() - 20);
+			font.draw(ui_batch, "time: " + creator.world.time, 0, Gdx.graphics.getHeight() - 40);
 			if(creator.preferred != null){
-				font.draw(ui_batch, creator.preferred.vel + ", " + creator.preferred.pos, 0, Gdx.graphics.getHeight() - 60);
+				font.draw(ui_batch, "vel: " + creator.preferred.vel + ", pos: " + creator.preferred.pos, 0, Gdx.graphics.getHeight() - 60);
 			}
 
 			ui_batch.end();

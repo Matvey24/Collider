@@ -53,7 +53,7 @@ public class TaskScheduler{
     }
 
     public double runUntil(double end){
-        int max_count = 50000;
+        int max_count = 5000;
         int count = 0;
         while(!queue.isEmpty() && queue.first().time <= end){
             TaskNode node = queue.pollFirst();

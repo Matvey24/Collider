@@ -22,6 +22,7 @@ import com.matvey.perelman.gdxcollider.raytracer.objects.Sphere;
 import java.util.ArrayList;
 
 public class WorldCreator {
+    public Collider2D collider2D;
     public ColliderWorld<Dynamic2D> world;
     public Scene scene;
     public ArrayList<Sphere> view_spheres;
@@ -89,6 +90,15 @@ public class WorldCreator {
         preferred = find_object(coords);
     }
 
+    public void reversePlayback(){
+        ArrayList<Dynamic2D> objects = new ArrayList<>(world.objects);
+        world.removeAll();
+        for(Dynamic2D obj: objects){
+            collider2D.updatePos(obj, world.time);
+            obj.vel.scl(-1);
+            world.addObject(obj);
+        }
+    }
 
     public WorldCreator(Texture sph, Texture pixel){
         createWorld(sph, pixel);
@@ -106,7 +116,7 @@ public class WorldCreator {
     private void createWorld(Texture sph, Texture pixel){
         spheres = new ArrayList<>();
         emitter = new ParticleEmitter();
-        Collider2D collider2D = new Collider2D(emitter);
+        collider2D = new Collider2D(emitter);
         field = new ArrayList<>();
 
         for(int x = 0; x < sx; ++x){
