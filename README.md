@@ -2,6 +2,8 @@
 Physically accurate collider of absolutely elastic spheres, 2D.
 As accurate as the floating point number precision allows.
 
+Screenshot:
+![alt text](screenshot.png)
 ### Idea
 This collider predicts time of each collision, waits for the time and calculates them.
 In process of waiting collisions can be cancelled.
