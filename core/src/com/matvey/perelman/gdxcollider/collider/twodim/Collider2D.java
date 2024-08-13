@@ -107,7 +107,7 @@ public class Collider2D implements Collider<Dynamic2D> {
             return Float.POSITIVE_INFINITY;
         D = (float) Math.sqrt(D);
         float root = (-b - D) / (2 * a);
-        if (root >= -0.000)
+        if (root >= -0.0001)
             return root;
         return Float.POSITIVE_INFINITY;
     }

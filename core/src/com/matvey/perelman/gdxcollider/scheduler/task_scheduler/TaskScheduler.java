@@ -1,8 +1,8 @@
 package com.matvey.perelman.gdxcollider.scheduler.task_scheduler;
 
+import com.matvey.perelman.gdxcollider.scheduler.TreeSet;
 import com.matvey.perelman.gdxcollider.scheduler.pools.ObjectPool;
 
-import java.util.TreeSet;
 import java.util.function.DoubleConsumer;
 
 public class TaskScheduler{
@@ -59,7 +59,7 @@ public class TaskScheduler{
         events = 0;
         allocations = 0;
         while(!queue.isEmpty() && queue.first().time <= end){
-            TaskNode node = queue.pollFirst();
+            TaskNode node = queue.removeFirst();
             node.task.accept(node.time);
             node.task = null;
             node.on_cancel = null;
