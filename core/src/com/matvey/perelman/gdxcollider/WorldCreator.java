@@ -3,7 +3,6 @@ package com.matvey.perelman.gdxcollider;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.matvey.perelman.gdxcollider.collider.core.Chunk;
@@ -47,7 +46,7 @@ public class WorldCreator {
         offsetX = resolution_factor * 30f / sphere_scale;
         offsetY = resolution_factor * 100f / sphere_scale;
     }
-    public Sphere2D preferred;
+    public Sphere2D observed;
 
     private Sphere2D find_object(Vector3 coords){
         Vector2 coord = new Vector2(coords.x, coords.y);
@@ -58,6 +57,8 @@ public class WorldCreator {
         Chunk<Dynamic2D> chunk = field.get(cx).get(cy);
         Sphere2D sph = null;
         for(Chunk<Dynamic2D> c : chunk.near){
+            if(c == null)
+                continue;
             for(Dynamic2D dyn : c.objects){
                 if(!(dyn instanceof Sphere2D))
                     continue;
@@ -87,7 +88,7 @@ public class WorldCreator {
     }
 
     public void onClick(Vector3 coords){
-        preferred = find_object(coords);
+        observed = find_object(coords);
     }
 
     public void reversePlayback(){
@@ -124,7 +125,18 @@ public class WorldCreator {
             for(int y = 0; y < sy; ++y)
                 field.get(x).add(new Chunk<>(collider2D));
         }
-
+        Wall wu = new Wall(pixel);
+        Wall wr = new Wall(pixel);
+        Wall wl = new Wall(pixel);
+        Wall wd = new Wall(pixel);
+        wu.vel.set(0, -1);
+        wr.vel.set(-1, 0);
+        wl.vel.set(1, 0);
+        wd.vel.set(0, 1);
+        wu.dir = 0;
+        wr.dir = 1;
+        wl.dir = 2;
+        wd.dir = 3;
         for(int x = 0; x < sx; ++x){
             for(int y = 0; y < sy; ++y){
                 Chunk<Dynamic2D> c = field.get(x).get(y);
@@ -133,45 +145,12 @@ public class WorldCreator {
                     int dy = (n / 3) - 1;
                     if(x + dx < sx && x + dx >= 0 && y + dy < sy && y + dy >= 0)
                         c.near.add(field.get(x + dx).get(y + dy));
+                    else
+                        c.near.add(null);
                 }
                 c.x = x;
                 c.y = y;
-                Wall wu = new Wall(pixel);
-                Wall wr = new Wall(pixel);
-                Wall wl = new Wall(pixel);
-                Wall wd = new Wall(pixel);
 
-                wu.pos.set((x + 0.5f) * scale, (y + 1) * scale);
-                wr.pos.set((x + 1) * scale, (y + 0.5f) * scale);
-                wl.pos.set(x * scale, (y + 0.5f) * scale);
-                wd.pos.set((x + 0.5f) * scale, y * scale);
-
-                wu.vel.set(0, -1);
-                wr.vel.set(-1, 0);
-                wl.vel.set(1, 0);
-                wd.vel.set(0, 1);
-
-                wu.chunk = c;
-                wr.chunk = c;
-                wl.chunk = c;
-                wd.chunk = c;
-
-                if(y + 1 < sy) {
-                    wu.trigger = true;
-                    wu.chunk = field.get(x).get(y + 1);
-                }
-                if(x + 1 < sx) {
-                    wr.trigger = true;
-                    wr.chunk = field.get(x + 1).get(y);
-                }
-                if(x > 0) {
-                    wl.trigger = true;
-                    wl.chunk = field.get(x - 1).get(y);
-                }
-                if(y > 0){
-                    wd.trigger = true;
-                    wd.chunk = field.get(x).get(y - 1);
-                }
                 c.stationary.add(wu);
                 c.stationary.add(wr);
                 c.stationary.add(wl);
@@ -243,27 +222,28 @@ public class WorldCreator {
     public void render(Batch batch){
         batch.setColor(Color.DARK_GRAY);
         for(int x = 0; x <= sx; ++x){
-            batch.draw(pixel, x * scale, 0, 1, scale * sy);
+            batch.draw(pixel, x * scale - 0.5f, -0.5f, 1, scale * sy);
         }
         for(int y = 0; y <= sy; ++y){
-            batch.draw(pixel, 0, y * scale, scale * sx, 1);
+            batch.draw(pixel, -0.5f, y * scale - 0.5f, scale * sx, 1);
         }
         batch.setColor(Color.WHITE);
-        if(preferred != null) {
+        if(observed != null) {
             batch.setColor(Color.CYAN);
-            renderSphere(batch, preferred);
-            if(preferred.col_with != null){
+            renderSphere(batch, observed);
+            if(observed.col_with != null){
                 batch.setColor(Color.ORANGE);
-                if(preferred.col_with instanceof Sphere2D){
-                    renderSphere(batch, (Sphere2D)preferred.col_with);
-                }else if(preferred.col_with instanceof Wall){
-                    Wall w = (Wall)preferred.col_with;
+                if(observed.col_with instanceof Sphere2D){
+                    renderSphere(batch, (Sphere2D) observed.col_with);
+                }else if(observed.col_with instanceof Wall){
+                    Wall w = (Wall) observed.col_with;
+                    w.setChunk(observed);
                     TextureGenerator.drawLine(
                             batch, pixel,
-                            w.pos.x + w.vel.y * scale / 2,
-                            w.pos.y - w.vel.x * scale / 2,
-                            w.pos.x - w.vel.y * scale / 2,
-                            w.pos.y + w.vel.x * scale / 2);
+                            w.pos.x + w.vel.y * scale / 2 - 0.5f,
+                            w.pos.y - w.vel.x * scale / 2 - 0.5f,
+                            w.pos.x - w.vel.y * scale / 2 - 0.5f,
+                            w.pos.y + w.vel.x * scale / 2 - 0.5f);
                 }
             }
 

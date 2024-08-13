@@ -5,7 +5,7 @@ import com.matvey.perelman.gdxcollider.scheduler.pools.UID;
 
 import java.util.function.DoubleConsumer;
 
-public class TaskNode implements UID {
+public class TaskNode implements UID, Comparable<TaskNode>{
     private final TaskScheduler scheduler;
     //used by TreeSet for determining the order of tasks, which have the same time
     public long uid;
@@ -67,6 +67,14 @@ public class TaskNode implements UID {
 
     public void set(DoubleConsumer task){
         this.task = task;
+    }
+
+    @Override
+    public int compareTo(TaskNode o) {
+        int r = Double.compare(time, o.time);
+        if(r == 0)
+            return Long.compare(uid, o.uid);
+        return r;
     }
 
     public TaskNode copy(){

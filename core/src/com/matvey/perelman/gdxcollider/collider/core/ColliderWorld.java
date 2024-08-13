@@ -1,5 +1,6 @@
 package com.matvey.perelman.gdxcollider.collider.core;
 
+import com.badlogic.gdx.utils.OrderedSet;
 import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.TaskScheduler;
 
 import java.util.ArrayList;
@@ -41,6 +42,8 @@ public class ColliderWorld<T extends Dynamic<T>> {
         T bound = oth;
 
         for(Chunk<T> c: d.chunk.near){
+            if(c == null)
+                continue;
             double time = c.collisions(d);
             if(time < time_min){
                 time_min = time;

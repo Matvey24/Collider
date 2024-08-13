@@ -39,17 +39,15 @@ public class Sphere2D extends Dynamic2D {
 //                System.out.println("Object " + hashCode() + " in chunk " + chunk.x + ":" + chunk.y + " lost");
 //                System.out.println(point_time);
 //                lost = true;
-//                warn = false;
 //            }
-//            warn = true;
+//            warn = !warn;
 //        }
 //        if(lost && cx == chunk.x && cy == chunk.y){
 //            if(warn){
 //                System.out.println("Object " + hashCode() + " found!");
 //                lost = false;
-//                warn = false;
 //            }
-//            warn = true;
+//            warn = !warn;
 //        }
 //        if(lost){
 //            batch.setColor(Color.MAGENTA);

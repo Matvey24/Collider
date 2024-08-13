@@ -2,7 +2,6 @@ package com.matvey.perelman.gdxcollider.scheduler.task_scheduler;
 
 import com.matvey.perelman.gdxcollider.scheduler.pools.ObjectPool;
 
-import java.util.Comparator;
 import java.util.TreeSet;
 import java.util.function.DoubleConsumer;
 
@@ -10,11 +9,12 @@ public class TaskScheduler{
     private final ObjectPool.UIDPool<TaskNode> pool;
     private final TreeSet<TaskNode> queue;
     public boolean stop;
+    public int allocations;
     public int events;
+    public long delay;
     public TaskScheduler(){
         pool = new ObjectPool.UIDPool<>(() -> new TaskNode(this));
-        queue = new TreeSet<>(Comparator.comparingDouble(TaskNode::time)
-                .thenComparingLong(TaskNode::uid));
+        queue = new TreeSet<>();
     }
 
     public void clearBuffer(){
@@ -40,6 +40,7 @@ public class TaskScheduler{
         node.time = time;
         queue.add(node);
         node.pinned = true;
+        allocations++;
     }
     void unpin(TaskNode node){
         queue.remove(node);
@@ -54,7 +55,9 @@ public class TaskScheduler{
 
     public double runUntil(double end){
         int max_count = 5000;
-        int count = 0;
+        delay = System.nanoTime();
+        events = 0;
+        allocations = 0;
         while(!queue.isEmpty() && queue.first().time <= end){
             TaskNode node = queue.pollFirst();
             node.task.accept(node.time);
@@ -63,14 +66,14 @@ public class TaskScheduler{
             dispose(node);
             double time = node.time;
             node.time = Double.POSITIVE_INFINITY;
-            count++;
-            if(stop || count >= max_count) {
-                this.events = count;
+            events++;
+            if(stop || events >= max_count) {
+                delay = System.nanoTime() - delay;
 //                System.out.println("Overflow");
                 return time;
             }
         }
-        this.events = count;
+        delay = System.nanoTime() - delay;
         return end;
     }
     //runs single event if stop == true, or runs infinite until stop == true, stops if there are no more events

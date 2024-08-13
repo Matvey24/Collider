@@ -25,20 +25,21 @@ public class Collider2D implements Collider<Dynamic2D> {
         a.vel.mulAdd(a.acc, (float)(time - a.point_time));
         a.point_time = time;
     }
-
     @Override
     public void collide(Dynamic2D a, Dynamic2D b, double time) {
         Sphere2D as = (Sphere2D) a;
         Sphere2D bs = (Sphere2D) b;
         updatePos(a, time);
         updatePos(b, time);
+        if(as.pos.dst2(bs.pos) > 1.1 * (as.radius + bs.radius) * (as.radius + bs.radius)){
+            System.out.println("Hello world");
+        }
         float mass_a = as.mass;
         float mass_b = bs.mass;
         Vector2 c = tmp, va = tmp2, vb = tmp3, dir = tmp4;
         c.setZero().mulAdd(a.vel, mass_a).mulAdd(b.vel, mass_b).scl(1 / (mass_a + mass_b));
         va.set(a.vel).sub(c);
         vb.set(b.vel).sub(c);
-
         dir.set(a.pos).sub(b.pos);
         dir.nor();
         va.mulAdd(dir, -2 * dir.dot(va));
@@ -61,6 +62,7 @@ public class Collider2D implements Collider<Dynamic2D> {
     @Override
     public void collide_static(Dynamic2D a, Dynamic2D stat, double time) {
         Wall w = (Wall) stat;
+        w.setChunk(a);
         Sphere2D sp = (Sphere2D) a;
         updatePos(sp, time);
         if(w.trigger) {
@@ -104,6 +106,7 @@ public class Collider2D implements Collider<Dynamic2D> {
     public double calc_time_static(Dynamic2D a, Dynamic2D stat) {
         Sphere2D sp = (Sphere2D) a;
         Wall w = (Wall) stat;
+        w.setChunk(a);
         Vector2 pos = tmp;
         pos.set(sp.pos).sub(w.pos);
 
