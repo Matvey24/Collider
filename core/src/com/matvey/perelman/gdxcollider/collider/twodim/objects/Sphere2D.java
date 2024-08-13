@@ -31,7 +31,7 @@ public class Sphere2D extends Dynamic2D {
 //        col.r = (col.r * speed + 1) / spdup;
 //        col.g = (col.g * speed) / spdup;
 //        col.b = (col.b * speed) / spdup;
-
+//
 //        int cx = (int)(cur_pos.x / scale);
 //        int cy = (int)(cur_pos.y / scale);
 //        if(!lost && (cx != chunk.x || cy != chunk.y)){
@@ -41,6 +41,8 @@ public class Sphere2D extends Dynamic2D {
 //                lost = true;
 //            }
 //            warn = !warn;
+//        }else{
+//            warn = false;
 //        }
 //        if(lost && cx == chunk.x && cy == chunk.y){
 //            if(warn){
@@ -48,6 +50,8 @@ public class Sphere2D extends Dynamic2D {
 //                lost = false;
 //            }
 //            warn = !warn;
+//        }else{
+//            warn = false;
 //        }
 //        if(lost){
 //            batch.setColor(Color.MAGENTA);

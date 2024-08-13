@@ -93,13 +93,23 @@ public class Collider2D implements Collider<Dynamic2D> {
 
         dv.set(v1).sub(v2);
 
-        float ac = dv.len2();
         float bc = 2 * dp.dot(dv);
+        float ac = dv.len2();
         float cc = dp.len2() - sum_rad * sum_rad;
+        if(bc >= 0)
+            return Float.POSITIVE_INFINITY;
+        return minimum(ac, bc, cc) + time_delta;
+    }
 
-        double t = minimum(ac, bc, cc);
-        t += time_delta;
-        return t;
+    public float minimum(float a, float b, float c) {
+        float D = b * b - 4 * a * c;
+        if (D <= 0)
+            return Float.POSITIVE_INFINITY;
+        D = (float) Math.sqrt(D);
+        float root = (-b - D) / (2 * a);
+        if (root >= -0.000)
+            return root;
+        return Float.POSITIVE_INFINITY;
     }
 
     @Override
@@ -116,22 +126,6 @@ public class Collider2D implements Collider<Dynamic2D> {
         float bc = sp.vel.dot(w.vel);
         float ac = sp.acc.dot(w.vel) / 2;
         return root(ac, bc, cc) + sp.point_time;
-    }
-
-    public float minimum(float a, float b, float c) {
-        if (a == 0) {
-            if (b * c >= 0)
-                return Float.POSITIVE_INFINITY;
-            return -c / b;
-        }
-        float D = b * b - 4 * a * c;
-        if (D <= 0)
-            return Float.POSITIVE_INFINITY;
-        D = (float) Math.sqrt(D);
-        float root = (-b - Math.signum(a) * D) / (2 * a);
-        if (root <= 0)
-            return Float.POSITIVE_INFINITY;
-        return root;
     }
 
     public float root(float a, float b, float c) {
