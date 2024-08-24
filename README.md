@@ -38,8 +38,6 @@ Top left corner
 * col - average amount of computed collisions per frame for 60 frames,
 * puts - average amount of predicted collisions per frame - amount of queue "add" calls
 * nanos - average amount of nanoseconds spent to predict one collision
-* speed - relative game speed
-* time - current simulation time
 * vel/pos - velocity/position of sphere at time of last collision, this is shown only if you are observing a sphere.
 
 You can download executable jar by [this link](https://github.com/Matvey24/Collider/raw/master/desktop/build/libs/desktop-1.0.jar).

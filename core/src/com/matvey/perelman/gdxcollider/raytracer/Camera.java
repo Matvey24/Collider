@@ -2,10 +2,7 @@ package com.matvey.perelman.gdxcollider.raytracer;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.matvey.perelman.gdxcollider.raytracer.objects.Dot;
-import com.nativelibs4java.opencl.CLBuffer;
-import com.nativelibs4java.opencl.CLEvent;
-import com.nativelibs4java.opencl.CLMem;
-import com.nativelibs4java.opencl.LocalSize;
+import com.nativelibs4java.opencl.*;
 import org.bridj.Pointer;
 import org.bridj.TypedPointer;
 
@@ -66,7 +63,7 @@ public class Camera extends Dot {
         byte[] bytes = img_pointer.getBytes();
         builder.set(bytes);
         if(render_time)
-            System.out.printf(" in %.3f sec", (System.currentTimeMillis() - time) / 1000f);
+            System.out.printf(" in %.3f sec\n", (System.currentTimeMillis() - time) / 1000f);
         param_buf.release();
         scene_buf.release();
         img_buf.release();

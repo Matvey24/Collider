@@ -17,6 +17,8 @@ import com.matvey.perelman.gdxcollider.raytracer.materials.ColorMaterial;
 import com.matvey.perelman.gdxcollider.raytracer.materials.Material;
 import com.matvey.perelman.gdxcollider.raytracer.objects.Box;
 import com.matvey.perelman.gdxcollider.raytracer.objects.Sphere;
+import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.FluidExecutor;
+import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.TaskScheduler;
 
 import java.util.ArrayList;
 
@@ -33,6 +35,8 @@ public class WorldCreator {
     public static final float scale;
     public static final float size, offsetX, offsetY;
     public float screen_scale;
+    public final TaskScheduler scheduler;
+    public final FluidExecutor executor;
     static{
 
         sx = 16 * chunk_scale;
@@ -95,16 +99,18 @@ public class WorldCreator {
         ArrayList<Dynamic2D> objects = new ArrayList<>(world.objects);
         world.removeAll();
         for(Dynamic2D obj: objects){
-            collider2D.updatePos(obj, world.time);
+            collider2D.updatePos(obj, scheduler.time);
             obj.vel.scl(-1);
             world.addObject(obj);
         }
     }
 
     public WorldCreator(Texture sph, Texture pixel){
+        scheduler = new TaskScheduler();
+        executor = new FluidExecutor(scheduler);
+        this.pixel = pixel;
         createWorld(sph, pixel);
         buildScene();
-        this.pixel = pixel;
     }
     public void addObject(Dynamic2D obj){
         if(obj instanceof Sphere2D)
@@ -159,7 +165,7 @@ public class WorldCreator {
         }
 
 
-        world = new ColliderWorld<>(collider2D);
+        world = new ColliderWorld<>(collider2D, scheduler);
 
         int speed = 1;
         for(int j = 1; j < 5 * sphere_scale; ++j) {
@@ -205,14 +211,14 @@ public class WorldCreator {
         Material box_material = new ColorMaterial(Color.YELLOW);
         int depth = 20;
 
-        Box w1 = new Box(box_material, 640, depth, depth);
-        w1.pos.set(640, 720 + depth, 0);
-        Box w2 = new Box(box_material, depth, 360 + 2 * depth, depth);
-        w2.pos.set(1280 + depth, 360, 0);
-        Box w3 = new Box(box_material, depth, 360 + 2 * depth, depth);
-        w3.pos.set(-depth, 360, 0);
-        Box w4 = new Box(box_material, 640, depth, 640);
-        w4.pos.set(640, -depth, 0);
+        Box w1 = new Box(box_material, 960, depth, depth);
+        w1.pos.set(960, 1080 + depth, 0);
+        Box w2 = new Box(box_material, depth, 540 + 2 * depth, depth);
+        w2.pos.set(1920 + depth, 540, 0);
+        Box w3 = new Box(box_material, depth, 540 + 2 * depth, depth);
+        w3.pos.set(-depth, 540, 0);
+        Box w4 = new Box(box_material, 960, depth, 960);
+        w4.pos.set(960, -depth, 0);
 
         scene.add(w1);
         scene.add(w2);
@@ -259,5 +265,12 @@ public class WorldCreator {
                 sp.cur_pos.y - (sp.radius + delta),
                 2f * (sp.radius + delta),
                 2f * (sp.radius + delta));
+    }
+
+
+    public void update(float speed, float dt){
+        executor.update(dt);
+        executor.run(scheduler.time + speed);
+        world.update((float)scheduler.time);
     }
 }

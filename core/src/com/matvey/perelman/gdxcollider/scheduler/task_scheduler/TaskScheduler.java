@@ -8,6 +8,7 @@ import java.util.function.DoubleConsumer;
 public class TaskScheduler{
     private final ObjectPool.UIDPool<TaskNode> pool;
     private final TreeSet<TaskNode> queue;
+    public double time;
     public boolean stop;
     public int allocations;
     public int events;
@@ -53,8 +54,7 @@ public class TaskScheduler{
         pool.free(node);
     }
 
-    public double runUntil(double end){
-        int max_count = 5000;
+    public void runUntil(double end){
         delay = System.nanoTime();
         events = 0;
         allocations = 0;
@@ -64,17 +64,16 @@ public class TaskScheduler{
             node.task = null;
             node.on_cancel = null;
             dispose(node);
-            double time = node.time;
+            time = node.time;
             node.time = Double.POSITIVE_INFINITY;
             events++;
-            if(stop || events >= max_count) {
+            if(stop){
                 delay = System.nanoTime() - delay;
-//                System.out.println("Overflow");
-                return time;
+                return;
             }
         }
+        time = end;
         delay = System.nanoTime() - delay;
-        return end;
     }
     //runs single event if stop == true, or runs infinite until stop == true, stops if there are no more events
     public void runInfinite(){

@@ -1,6 +1,5 @@
 package com.matvey.perelman.gdxcollider.collider.core;
 
-import com.badlogic.gdx.utils.OrderedSet;
 import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.TaskScheduler;
 
 import java.util.ArrayList;
@@ -9,12 +8,11 @@ public class ColliderWorld<T extends Dynamic<T>> {
     public final TaskScheduler scheduler;
     public final Collider<T> collider;
     public final ArrayList<T> objects;
-    public double time;
 
-    public ColliderWorld(Collider<T> collider){
+    public ColliderWorld(Collider<T> collider, TaskScheduler scheduler){
         this.collider = collider;
         objects = new ArrayList<>();
-        scheduler = new TaskScheduler();
+        this.scheduler = scheduler;
     }
     public void addObject(T dim){
         dim.col_task = scheduler.createTask();
@@ -91,12 +89,9 @@ public class ColliderWorld<T extends Dynamic<T>> {
         notifyObjectAdded(a);
         notifyObjectAdded(b);
     }
-    public void update(float dt){
-        time += dt;
-        time = scheduler.runUntil(time);
-
+    public void update(float time){
         for(T d: objects){
-            d.update((float)time);
+            d.update(time);
         }
     }
 }

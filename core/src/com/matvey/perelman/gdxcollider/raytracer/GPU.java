@@ -16,7 +16,7 @@ public class GPU implements AutoCloseable {
     private final CLProgram prg;
 
     public GPU() {
-        CLPlatform platform = JavaCL.listPlatforms()[0];
+        CLPlatform platform = JavaCL.listPlatforms()[1];
         context = platform.createContext(new HashMap<>(), platform.getBestDevice());
         String[] paths = {"math.c", "ImageBMP.c", "intersections.c", "figures.c", "main.c"};
         queue = context.createDefaultQueue();
