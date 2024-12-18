@@ -1,5 +1,6 @@
 package com.matvey.perelman.gdxcollider;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -19,6 +20,7 @@ import com.matvey.perelman.gdxcollider.raytracer.objects.Box;
 import com.matvey.perelman.gdxcollider.raytracer.objects.Sphere;
 import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.FluidExecutor;
 import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.TaskScheduler;
+import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.ThreadExecutor;
 
 import java.util.ArrayList;
 
@@ -36,7 +38,8 @@ public class WorldCreator {
     public static final float size, offsetX, offsetY;
     public float screen_scale;
     public final TaskScheduler scheduler;
-    public final FluidExecutor executor;
+//    public final FluidExecutor executor;
+    public final ThreadExecutor executor;
     static{
 
         sx = 16 * chunk_scale;
@@ -107,7 +110,8 @@ public class WorldCreator {
 
     public WorldCreator(Texture sph, Texture pixel){
         scheduler = new TaskScheduler();
-        executor = new FluidExecutor(scheduler);
+//        executor = new FluidExecutor(scheduler);
+        executor = new ThreadExecutor(scheduler);
         this.pixel = pixel;
         createWorld(sph, pixel);
         buildScene();
@@ -269,8 +273,20 @@ public class WorldCreator {
 
 
     public void update(float speed, float dt){
-        executor.update(dt);
-        executor.run(scheduler.time + speed);
+        executor.prepare_for_begin(scheduler.time + speed * dt);
+
+//        executor.update(dt);
+//        executor.run(scheduler.time + speed * dt);
         world.update((float)scheduler.time);
+    }
+    public void on_pre_cycle(){
+        executor.ensure_finished();
+    }
+    public void on_post_cycle(){
+        executor.begin();
+    }
+    public void dispose(){
+        emitter.close();
+        executor.close();
     }
 }

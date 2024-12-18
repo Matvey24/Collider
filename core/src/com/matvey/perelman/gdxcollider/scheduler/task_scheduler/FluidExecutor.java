@@ -1,6 +1,5 @@
 package com.matvey.perelman.gdxcollider.scheduler.task_scheduler;
 
-import com.badlogic.gdx.Gdx;
 import com.matvey.perelman.gdxcollider.AverageValue;
 
 import java.util.Timer;

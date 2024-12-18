@@ -28,7 +28,7 @@ public class GdxCollider extends ApplicationAdapter {
     public BitmapFont font;
     AverageValue.AverageLong updates, nanos, allocs;
     AverageValue.AverageFloat actual_speed, speed_variation;
-    private float speed = 0.001f;
+    private float speed = 1 / 2f, last_scheduler_time = 0;
     private boolean paused, save_paused;
     public OrthographicCamera cam;
     public float scale = 1;
@@ -37,6 +37,7 @@ public class GdxCollider extends ApplicationAdapter {
     public float roll;
     private int window_h = 1280, window_w = 720;
     public com.matvey.perelman.gdxcollider.raytracer.Camera camera;
+
     @Override
     public void create() {
         Gdx.graphics.setVSync(true);
@@ -52,9 +53,9 @@ public class GdxCollider extends ApplicationAdapter {
         pixel = TextureGenerator.genPixel(Color.WHITE);
         creator = new WorldCreator(sph, pixel);
 
-		if(RTX_ON){
-			gpu = new GPU();
-		}
+        if (RTX_ON) {
+            gpu = new GPU();
+        }
         camera = new com.matvey.perelman.gdxcollider.raytracer.Camera(gpu, creator.scene, 1920, 1080);
         camera.pos.set(1920 / 2f, 1080 / 2f, -2500);
         camera.render_time = false;
@@ -69,6 +70,7 @@ public class GdxCollider extends ApplicationAdapter {
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
             public boolean keyDown(int keycode) {
+                creator.on_pre_cycle();
                 switch (keycode) {
                     case Input.Keys.W:
                         movement.y += 1;
@@ -134,6 +136,7 @@ public class GdxCollider extends ApplicationAdapter {
 
             @Override
             public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+                creator.on_pre_cycle();
                 Vector3 pos = new Vector3(screenX, screenY, 0);
                 cam.unproject(pos);
 
@@ -192,10 +195,10 @@ public class GdxCollider extends ApplicationAdapter {
             cam.position.add(last_used_position.x, last_used_position.y, 0);
             last_used_position.set(creator.observed.cur_pos);
         }
-        if(RTX_ON){
-            for(int i = 0; i < creator.world.objects.size(); ++i){
+        if (RTX_ON) {
+            for (int i = 0; i < creator.world.objects.size(); ++i) {
                 creator.scene.objects.get(i).pos.set(creator.world.objects.get(i).cur_pos, 0);
-                ((ColorMaterial)((Sphere)creator.scene.objects.get(i)).m).diffuse.set(((Sphere2D)creator.world.objects.get(i)).col);
+                ((ColorMaterial) ((Sphere) creator.scene.objects.get(i)).m).diffuse.set(((Sphere2D) creator.world.objects.get(i)).col);
             }
         }
         cam.update();
@@ -208,10 +211,10 @@ public class GdxCollider extends ApplicationAdapter {
             update(Gdx.graphics.getDeltaTime());
             ScreenUtils.clear(0, 0, 0, 1);
             world_batch.begin();
-			if (RTX_ON) {
+            if (RTX_ON) {
                 camera.render();
-				world_batch.draw(camera.getResult(), 0, 0);
-			} else {
+                world_batch.draw(camera.getResult(), 0, 0);
+            } else {
                 creator.render(world_batch);
                 creator.emitter.render(world_batch);
             }
@@ -219,14 +222,16 @@ public class GdxCollider extends ApplicationAdapter {
             world_batch.end();
             ui_batch.begin();
             font.draw(ui_batch, "col: " + updates.avg + ", puts: " + allocs.avg + ", nanos: " + nanos.avg, 0, Gdx.graphics.getHeight());
-            font.draw(ui_batch, "target speed: " + speed * 1000 + ", actual speed: " + String.format("%.2f", actual_speed.avg * 1000), 0, Gdx.graphics.getHeight() - 20);
-            font.draw(ui_batch, "speed variation: " + String.format("%.2f", Math.sqrt(speed_variation.avg) * 1000), 0, Gdx.graphics.getHeight() - 40);
-            font.draw(ui_batch, "time: " + String.format("%.2f", creator.scheduler.time), 0, Gdx.graphics.getHeight() - 60);
+            font.draw(ui_batch, "target speed: " + speed + ", actual speed: " + String.format("%.4f", actual_speed.avg), 0, Gdx.graphics.getHeight() - 20);
+            font.draw(ui_batch, "speed variation: " + String.format("%.4f", Math.sqrt(speed_variation.avg)), 0, Gdx.graphics.getHeight() - 40);
+            font.draw(ui_batch, "time: " + String.format("%.4f", creator.scheduler.time), 0, Gdx.graphics.getHeight() - 60);
             if (creator.observed != null) {
                 font.draw(ui_batch, "vel: " + creator.observed.vel + ", pos: " + creator.observed.pos, 0, Gdx.graphics.getHeight() - 80);
             }
 
             ui_batch.end();
+            if (!paused)
+                creator.on_post_cycle();
         } catch (Exception e) {
             e.printStackTrace();
             Gdx.app.exit();
@@ -241,23 +246,26 @@ public class GdxCollider extends ApplicationAdapter {
 //			task.run();
 //			made = true;
 //		}
+        creator.on_pre_cycle();
         if (!paused) {
-            float last_time = (float)creator.scheduler.time;
             creator.update(speed, dt);
             creator.emitter.update(speed);
             int ev = creator.scheduler.events;
-            updates.add((long)ev);
+            updates.add((long) ev);
             int al = creator.scheduler.allocations;
-            allocs.add((long)al);
+            allocs.add((long) al);
             if (al != 0) {
                 nanos.add(creator.world.scheduler.delay / al);
             }
-            float delta_time = (float)creator.scheduler.time - last_time;
-            actual_speed.add(delta_time);
-            speed_variation.add((actual_speed.avg - delta_time) * (actual_speed.avg - delta_time));
+            if (dt != 0) {
+                float delta_time = (float) creator.scheduler.time - last_scheduler_time;
+                last_scheduler_time = (float) creator.scheduler.time;
+                float current_speed = delta_time / dt;
+                actual_speed.add(current_speed);
+                speed_variation.add((actual_speed.avg - current_speed) * (actual_speed.avg - current_speed));
+            }
         }
         camera_update(dt);
-//		eee
     }
 
     @Override
@@ -265,7 +273,7 @@ public class GdxCollider extends ApplicationAdapter {
         world_batch.dispose();
         sph.dispose();
         pixel.dispose();
-        creator.emitter.close();
+        creator.dispose();
         ui_batch.dispose();
     }
 }

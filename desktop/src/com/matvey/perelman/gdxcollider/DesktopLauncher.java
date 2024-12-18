@@ -15,7 +15,7 @@ public class DesktopLauncher {
 		Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
 		config.setTitle("MyGdxCollider");
 		config.setWindowedMode(1280, 720);
-		config.setForegroundFPS(60);
+		config.setForegroundFPS(0);
 //		config.setFullscreenMode(Lwjgl3ApplicationConfiguration.getDisplayMode());
 		new Lwjgl3Application(collider, config);
 	}

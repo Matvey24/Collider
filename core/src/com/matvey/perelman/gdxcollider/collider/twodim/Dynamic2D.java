@@ -15,7 +15,7 @@ public abstract class Dynamic2D extends Dynamic<Dynamic2D> {
         cur_pos = new Vector2();
         pos = new Vector2();
         vel = new Vector2();
-        acc = new Vector2(600, 0);
+        acc = new Vector2(100, 0);
     }
     public void update(double time){
         float dt = (float)(time - point_time);

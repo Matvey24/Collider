@@ -13,6 +13,8 @@ public class TaskScheduler{
     public int allocations;
     public int events;
     public long delay;
+
+
     public TaskScheduler(){
         pool = new ObjectPool.UIDPool<>(() -> new TaskNode(this));
         queue = new TreeSet<>();
@@ -60,11 +62,11 @@ public class TaskScheduler{
         allocations = 0;
         while(!queue.isEmpty() && queue.first().time <= end){
             TaskNode node = queue.removeFirst();
+            time = node.time;
             node.task.accept(node.time);
             node.task = null;
             node.on_cancel = null;
             dispose(node);
-            time = node.time;
             node.time = Double.POSITIVE_INFINITY;
             events++;
             if(stop){
@@ -74,9 +76,5 @@ public class TaskScheduler{
         }
         time = end;
         delay = System.nanoTime() - delay;
-    }
-    //runs single event if stop == true, or runs infinite until stop == true, stops if there are no more events
-    public void runInfinite(){
-        runUntil(Long.MAX_VALUE);
     }
 }
