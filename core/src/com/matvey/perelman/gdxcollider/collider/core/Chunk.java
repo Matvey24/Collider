@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class Chunk<T extends Dynamic<T>> {
     public final Collider<T> collider;
     public final ArrayList<T> objects;
-    public final ArrayList<T> stationary;    // stationary.chunk() returns target chunk
+    public final ArrayList<T> stationary;
     public final ArrayList<Chunk<T>> near; // near chunks to update just collisions, including this chunk
     public int x, y;
     public Chunk(Collider<T> collider){    // assuming overriding constructor
@@ -14,34 +14,24 @@ public class Chunk<T extends Dynamic<T>> {
         stationary = new ArrayList<>();
         near = new ArrayList<>();
     }
-    public double collisions(T d){
-        double time_min = Double.POSITIVE_INFINITY;
-        T oth = null;
-
+    public void collisions(T d){
         for(T obj: objects){
             if(obj == d)
                 continue;
             double time = collider.calc_time(d, obj);
-            if(time < time_min && (time < obj.col_task.time())){
-                time_min = time;
-                oth = obj;
+            if(time < d.col_time && (time < obj.col_time)){
+                d.col_time = time;
+                d.col_with = obj;
             }
         }
-        d.col_with = oth;
-        return time_min;
     }
-    public double bounds(T d){
-        double time_min = Double.POSITIVE_INFINITY;
-        T oth = null;
-
+    public void bounds(T d){
         for(T obj: stationary){
             double time = collider.calc_time_static(d, obj);
-            if(time < time_min){
-                time_min = time;
-                oth = obj;
+            if(time < d.col_time){
+                d.col_time = time;
+                d.col_with = obj;
             }
         }
-        d.col_with = oth;
-        return time_min;
     }
 }

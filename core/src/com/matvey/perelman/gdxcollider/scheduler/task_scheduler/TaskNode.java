@@ -1,11 +1,12 @@
 package com.matvey.perelman.gdxcollider.scheduler.task_scheduler;
 
 
+import com.matvey.perelman.gdxcollider.scheduler.collections.IndexedHeapElement;
 import com.matvey.perelman.gdxcollider.scheduler.pools.UID;
 
 import java.util.function.DoubleConsumer;
 
-public class TaskNode implements UID, Comparable<TaskNode>{
+public class TaskNode implements UID, IndexedHeapElement, Comparable<TaskNode> {
     private final TaskScheduler scheduler;
     //used by TreeSet for determining the order of tasks, which have the same time
     public long uid;
@@ -13,6 +14,17 @@ public class TaskNode implements UID, Comparable<TaskNode>{
     double time;
     boolean pinned;
     DoubleConsumer task;
+
+    private int heap_index = -1;
+    @Override
+    public void setHeapIndex(int idx) {
+        heap_index = idx;
+    }
+
+    @Override
+    public int getHeapIndex() {
+        return heap_index;
+    }
 
     TaskNode(TaskScheduler scheduler){
         this.scheduler = scheduler;

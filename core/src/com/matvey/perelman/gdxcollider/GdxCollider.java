@@ -17,6 +17,9 @@ import com.matvey.perelman.gdxcollider.raytracer.materials.ColorMaterial;
 import com.matvey.perelman.gdxcollider.raytracer.objects.Sphere;
 
 public class GdxCollider extends ApplicationAdapter {
+    public static GdxCollider instance;
+
+
     SpriteBatch world_batch, ui_batch;
     Texture sph, pixel;
     WorldCreator creator;
@@ -29,7 +32,7 @@ public class GdxCollider extends ApplicationAdapter {
     AverageValue.AverageLong updates, nanos, allocs;
     AverageValue.AverageFloat actual_speed, speed_variation;
     private float speed = 1 / 2f, last_scheduler_time = 0;
-    private boolean paused, save_paused;
+    public boolean paused, save_paused;
     public OrthographicCamera cam;
     public float scale = 1;
     public Vector2 movement = new Vector2();
@@ -37,6 +40,10 @@ public class GdxCollider extends ApplicationAdapter {
     public float roll;
     private int window_h = 1280, window_w = 720;
     public com.matvey.perelman.gdxcollider.raytracer.Camera camera;
+
+    public GdxCollider(){
+        instance = this;
+    }
 
     @Override
     public void create() {
@@ -62,10 +69,6 @@ public class GdxCollider extends ApplicationAdapter {
         roll = 0.001f;
         cam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         cam.position.set(1920 / 2f, 1080 / 2f, 0);
-        float target_time = 0f;
-        do {
-            update((float) (0.016));
-        } while (creator.scheduler.time < target_time);
         font = new BitmapFont();
         Gdx.input.setInputProcessor(new InputAdapter() {
             @Override
@@ -146,9 +149,7 @@ public class GdxCollider extends ApplicationAdapter {
                 }
                 if (button == Input.Buttons.LEFT) {
                     creator.onClick(pos);
-                    if (creator.observed != null) {
-                        last_used_position.set(creator.observed.cur_pos);
-                    }
+                    follow(creator.observed);
                     return true;
                 }
                 return false;
@@ -160,8 +161,36 @@ public class GdxCollider extends ApplicationAdapter {
                 return true;
             }
         });
-    }
 
+//        benchmark();
+    }
+    public void benchmark(){
+        paused = true;
+        creator.update(20);
+
+        long nanos = System.nanoTime();
+        creator.executor.begin();
+        creator.executor.wait_for_finish();
+
+        nanos = System.nanoTime() - nanos;
+        String sec = String.format("%.2f", ((double)nanos) / 1_000_000_000);
+        System.out.println("Time taken (sec):" + sec);
+        System.out.println("InGame time: " + creator.scheduler.time);
+        System.out.println("Events: " + creator.scheduler.events);
+        System.out.println("Queue throughput: " + creator.scheduler.allocations);
+    }
+    public void follow(Sphere2D sp){
+        creator.observed = sp;
+        if(sp != null)
+            last_used_position.set(creator.observed.cur_pos);
+    }
+    public void alert(Sphere2D sp){
+        paused = true;
+        System.out.println(creator.scheduler.stop);
+        creator.scheduler.stop = true;
+        follow(sp);
+        cam.position.set(sp.cur_pos.x, sp.cur_pos.y, 0);
+    }
     @Override
     public void resize(int width, int height) {
         camera_update(0);
@@ -226,7 +255,9 @@ public class GdxCollider extends ApplicationAdapter {
             font.draw(ui_batch, "speed variation: " + String.format("%.4f", Math.sqrt(speed_variation.avg)), 0, Gdx.graphics.getHeight() - 40);
             font.draw(ui_batch, "time: " + String.format("%.4f", creator.scheduler.time), 0, Gdx.graphics.getHeight() - 60);
             if (creator.observed != null) {
-                font.draw(ui_batch, "vel: " + creator.observed.vel + ", pos: " + creator.observed.pos, 0, Gdx.graphics.getHeight() - 80);
+                Sphere2D sp = creator.observed;
+                font.draw(ui_batch, "vel: " + sp.vel + ", pos: " + sp.pos, 0, Gdx.graphics.getHeight() - 80);
+                font.draw(ui_batch, "point_time: " + String.format("%.4f", sp.point_time) + ", col_time: " + (float)(sp.col_time - sp.point_time), 0, Gdx.graphics.getHeight() - 100);
             }
 
             ui_batch.end();
@@ -248,8 +279,7 @@ public class GdxCollider extends ApplicationAdapter {
 //		}
         creator.on_pre_cycle();
         if (!paused) {
-            creator.update(speed, dt);
-            creator.emitter.update(speed);
+            creator.update(speed * dt);
             int ev = creator.scheduler.events;
             updates.add((long) ev);
             int al = creator.scheduler.allocations;

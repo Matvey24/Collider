@@ -1,13 +1,13 @@
 package com.matvey.perelman.gdxcollider.scheduler.task_scheduler;
 
-import com.matvey.perelman.gdxcollider.scheduler.TreeSet;
+import com.matvey.perelman.gdxcollider.scheduler.collections.IndexedHeap;
 import com.matvey.perelman.gdxcollider.scheduler.pools.ObjectPool;
 
 import java.util.function.DoubleConsumer;
 
 public class TaskScheduler{
     private final ObjectPool.UIDPool<TaskNode> pool;
-    private final TreeSet<TaskNode> queue;
+    private final IndexedHeap<TaskNode> queue;
     public double time;
     public boolean stop;
     public int allocations;
@@ -17,7 +17,7 @@ public class TaskScheduler{
 
     public TaskScheduler(){
         pool = new ObjectPool.UIDPool<>(() -> new TaskNode(this));
-        queue = new TreeSet<>();
+        queue = new IndexedHeap<>();
     }
 
     public void clearBuffer(){

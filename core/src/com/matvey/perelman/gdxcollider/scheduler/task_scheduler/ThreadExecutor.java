@@ -8,7 +8,7 @@ public class ThreadExecutor {
     private final Locker lock;
     private boolean running;
     private RuntimeException ex;
-
+    public Runnable on_finish;
     private double time_end;
     public ThreadExecutor(TaskScheduler scheduler){
         this.scheduler = scheduler;
@@ -37,12 +37,18 @@ public class ThreadExecutor {
         }
     }
 
-    public void ensure_finished(){
+    public void stop(){
+        scheduler.stop = true; // it can be already true, if game decided to pause itself
+        wait_for_finish();
+    }
+    public void wait_for_finish(){
         if (!running)
             return;
         running = false;
-        scheduler.stop = true; // it can be already true, if game decided to pause itself
+
         lock.lock();
+        if(on_finish != null)
+            on_finish.run();
         if(ex != null){
             RuntimeException e = ex;
             ex = null;

@@ -20,7 +20,9 @@ When objects collide, collider changes their speed, removes these objects from '
 Each collision waits for time to be happened in priority queue, where time of collision is priority,
 it needs to be fast in methods "add(obj)", "removeFirst()" and "remove(obj)" in the same time,
 java default priority queue says, that it is slow in "remove(obj)", so I made own queue:
-I used TreeSet with two comparators: by priority, and then by id of object, java default tree set allocates new object every insertion, so TreeSet is also mine.
+I need two comparators: by priority, and then by id of object.
+It turned out, that indexed heap with its index in the object works two times faster, than custom TreeSet with no allocation,
+which works another two times faster, than java.util.TreeSet.
 
 ### Controls:
 * WASD - move camera

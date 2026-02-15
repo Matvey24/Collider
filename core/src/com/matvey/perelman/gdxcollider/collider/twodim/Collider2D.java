@@ -29,11 +29,9 @@ public class Collider2D implements Collider<Dynamic2D> {
     public void collide(Dynamic2D a, Dynamic2D b, double time) {
         Sphere2D as = (Sphere2D) a;
         Sphere2D bs = (Sphere2D) b;
+//        boolean bo = a.vel.y == 0 && b.vel.y == 0;
         updatePos(a, time);
         updatePos(b, time);
-        if(as.pos.dst2(bs.pos) > 1.1 * (as.radius + bs.radius) * (as.radius + bs.radius)){
-            System.out.println("Hello world");
-        }
         float mass_a = as.mass;
         float mass_b = bs.mass;
         Vector2 c = tmp, va = tmp2, vb = tmp3, dir = tmp4;
@@ -42,11 +40,12 @@ public class Collider2D implements Collider<Dynamic2D> {
         vb.set(b.vel).sub(c);
         dir.set(a.pos).sub(b.pos);
         dir.nor();
+
         va.mulAdd(dir, -2 * dir.dot(va));
         vb.mulAdd(dir, -2 * dir.dot(vb));
-
         a.vel.set(c).add(va);
         b.vel.set(c).add(vb);
+
         if (as.sup_er != bs.sup_er) {
             Color col = as.sup_er ? as.col : bs.col;
             as.col.set(col);
@@ -63,6 +62,7 @@ public class Collider2D implements Collider<Dynamic2D> {
     public void collide_static(Dynamic2D a, Dynamic2D stat, double time) {
         Wall w = (Wall) stat;
         w.setChunk(a);
+//        boolean b = a.vel.y == 0;
         Sphere2D sp = (Sphere2D) a;
         updatePos(sp, time);
         if(w.trigger) {
@@ -70,10 +70,8 @@ public class Collider2D implements Collider<Dynamic2D> {
         }
 
 
-        sp.vel.mulAdd(w.vel, -2 * w.vel.dot(sp.vel));
+        a.vel.mulAdd(w.vel, -2 * w.vel.dot(a.vel));
 
-//        tmp.set(sp.pos);
-//        emitter.addParticle(tmp.x, tmp.y, 1f);
     }
 
     @Override

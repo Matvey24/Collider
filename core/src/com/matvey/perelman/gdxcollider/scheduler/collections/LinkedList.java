@@ -1,4 +1,4 @@
-package com.matvey.perelman.gdxcollider.scheduler;
+package com.matvey.perelman.gdxcollider.scheduler.collections;
 
 
 import com.matvey.perelman.gdxcollider.scheduler.pools.ObjectPool;

@@ -1,6 +1,5 @@
 package com.matvey.perelman.gdxcollider;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
@@ -18,7 +17,6 @@ import com.matvey.perelman.gdxcollider.raytracer.materials.ColorMaterial;
 import com.matvey.perelman.gdxcollider.raytracer.materials.Material;
 import com.matvey.perelman.gdxcollider.raytracer.objects.Box;
 import com.matvey.perelman.gdxcollider.raytracer.objects.Sphere;
-import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.FluidExecutor;
 import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.TaskScheduler;
 import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.ThreadExecutor;
 
@@ -115,6 +113,7 @@ public class WorldCreator {
         this.pixel = pixel;
         createWorld(sph, pixel);
         buildScene();
+        executor.on_finish = ()-> world.update((float)scheduler.time);
     }
     public void addObject(Dynamic2D obj){
         if(obj instanceof Sphere2D)
@@ -140,12 +139,12 @@ public class WorldCreator {
         Wall wl = new Wall(pixel);
         Wall wd = new Wall(pixel);
         wu.vel.set(0, -1);
-        wr.vel.set(-1, 0);
-        wl.vel.set(1, 0);
-        wd.vel.set(0, 1);
         wu.dir = 0;
+        wr.vel.set(-1, 0);
         wr.dir = 1;
+        wl.vel.set(1, 0);
         wl.dir = 2;
+        wd.vel.set(0, 1);
         wd.dir = 3;
         for(int x = 0; x < sx; ++x){
             for(int y = 0; y < sy; ++y){
@@ -239,24 +238,21 @@ public class WorldCreator {
         }
         batch.setColor(Color.WHITE);
         if(observed != null) {
-            batch.setColor(Color.CYAN);
-            renderSphere(batch, observed);
+            batch.setColor(0, 0, 1, 0.5f);
+            batch.draw(pixel, observed.chunk.x * scale, observed.chunk.y * scale, scale, scale);
+
             if(observed.col_with != null){
                 batch.setColor(Color.ORANGE);
                 if(observed.col_with instanceof Sphere2D){
                     renderSphere(batch, (Sphere2D) observed.col_with);
                 }else if(observed.col_with instanceof Wall){
                     Wall w = (Wall) observed.col_with;
-                    w.setChunk(observed);
-                    TextureGenerator.drawLine(
-                            batch, pixel,
-                            w.pos.x + w.vel.y * scale / 2 - 0.5f,
-                            w.pos.y - w.vel.x * scale / 2 - 0.5f,
-                            w.pos.x - w.vel.y * scale / 2 - 0.5f,
-                            w.pos.y + w.vel.x * scale / 2 - 0.5f);
+                    w.chunk = observed.chunk;
+                    w.render(batch);
                 }
             }
-
+            batch.setColor(Color.CYAN);
+            renderSphere(batch, observed);
             batch.setColor(Color.WHITE);
         }
         for (Dynamic2D d : world.objects)
@@ -272,15 +268,12 @@ public class WorldCreator {
     }
 
 
-    public void update(float speed, float dt){
-        executor.prepare_for_begin(scheduler.time + speed * dt);
-
-//        executor.update(dt);
-//        executor.run(scheduler.time + speed * dt);
-        world.update((float)scheduler.time);
+    public void update(float delta){
+        executor.prepare_for_begin(scheduler.time + delta);
+//        emitter.update(speed);
     }
     public void on_pre_cycle(){
-        executor.ensure_finished();
+        executor.stop();
     }
     public void on_post_cycle(){
         executor.begin();

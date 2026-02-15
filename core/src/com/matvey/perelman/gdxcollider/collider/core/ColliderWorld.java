@@ -1,5 +1,7 @@
 package com.matvey.perelman.gdxcollider.collider.core;
 
+import com.matvey.perelman.gdxcollider.GdxCollider;
+import com.matvey.perelman.gdxcollider.collider.twodim.objects.Sphere2D;
 import com.matvey.perelman.gdxcollider.scheduler.task_scheduler.TaskScheduler;
 
 import java.util.ArrayList;
@@ -32,49 +34,40 @@ public class ColliderWorld<T extends Dynamic<T>> {
     }
 
     public void notifyObjectAdded(T d){//changed velocity, position or size
-        d.col_with = null;
-        d.col_task.unpin();
+        d.unpin();
 
-        double time_min = d.chunk.bounds(d);
-        T oth = d.col_with;
-        T bound = oth;
-
+        d.chunk.bounds(d);
+        T bound = d.col_with;
         for(Chunk<T> c: d.chunk.near){
             if(c == null)
                 continue;
-            double time = c.collisions(d);
-            if(time < time_min){
-                time_min = time;
-                oth = d.col_with;
-            }
+            c.collisions(d);
         }
 
-        if(oth == null) {
-            d.col_with = null;
+        if(d.col_with == null)
+            return;
+
+//        if(d.col_time < scheduler.time - 1E-5){
+//            Sphere2D sp = (Sphere2D)d;
+//            GdxCollider.instance.alert(sp);
+//        }
+        if(d.col_with == bound){
+            d.pin();
             return;
         }
 
-        if(oth == bound){
-            d.col_with = bound;
-            d.col_task.pin(time_min);
-            return;
-        }
+        T third = d.col_with.col_with;
+        d.col_with.col_with = d;
+        d.col_with.col_time = d.col_time;
+        d.col_with.pin();
+        d.pin();
 
-        T third = oth.col_with;
-        oth.col_with = d;
-        oth.col_task.pin(time_min);
-        d.col_with = oth;
-        d.col_task.pin(time_min);
-
-        if(third != null && third.col_with != null)
+        if(third != null && third != d && third.col_with != null)
             notifyObjectAdded(third);
     }
     public void collide(T a, double time){
         T b = a.col_with;
         a.col_task = a.col_task.copy();
-//        if(time >= 0.6234){
-//            System.out.println("Hello world");
-//        }
         if(b.col_with == null){ //static object or trigger
             collider.collide_static(a, b, time);
             a.chunk.objects.remove(a);

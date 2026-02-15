@@ -3,12 +3,15 @@ package com.matvey.perelman.gdxcollider.collider.twodim.objects;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.matvey.perelman.gdxcollider.TextureGenerator;
 import com.matvey.perelman.gdxcollider.collider.twodim.Dynamic2D;
 
 import static com.matvey.perelman.gdxcollider.WorldCreator.*;
 
 public class Wall extends Dynamic2D {
+    public static final float SQRT2 = (float)Math.sqrt(2) * 0.5f;
     //pos - point of wall
     //vel - normal of wall
     private final Texture pixel;
@@ -19,14 +22,14 @@ public class Wall extends Dynamic2D {
     }
     @Override
     public void render(Batch b) {
-        TextureGenerator.drawLine(b, pixel, pos.x + vel.y * 1000, pos.y - vel.x * 1000, pos.x - vel.y * 1000, pos.y + vel.x * 1000);
-//        if(col_with != null) {
-//            float x1 = cur_pos.x, x2 = col_with.cur_pos.x;
-//            float y1 = cur_pos.y, y2 = col_with.cur_pos.y;
-//            b.setColor(Color.BLUE);
-//            TextureGenerator.drawLine(b, pixel, x1, y1, (x2 + x1) / 2, (y2 + y1) / 2);
-//            b.setColor(Color.WHITE);
-//        }
+        float first_x = (chunk.x + (1 - vel.x + vel.y) * 0.5f) * scale - vel.y * 0.5f,
+                first_y = (chunk.y + (1 - vel.y - vel.x) * 0.5f) * scale + vel.x * 0.5f,
+                second_x = (chunk.x + (1 - vel.x - vel.y) * 0.5f) * scale + vel.y * 0.5f,
+                second_y = (chunk.y + (1 - vel.y + vel.x) * 0.5f) * scale - vel.x * 0.5f;
+
+        TextureGenerator.drawLine(b, pixel, first_x, first_y, second_x, second_y);
+        TextureGenerator.draw(b, pixel, first_x, first_y, SQRT2, SQRT2, 45);
+        TextureGenerator.draw(b, pixel, second_x, second_y, SQRT2, SQRT2, 45);
     }
     public void setChunk(Dynamic2D obj){
         chunk = obj.chunk;
